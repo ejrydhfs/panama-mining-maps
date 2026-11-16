@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concesiones mineras de Panamá · 2008–2026</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>
+  :root{--bg:#0e1116;--fg:#e9edf2;--muted:#98a2b3;--line:#28303c;--accent:#58a6ff;
+        --c-mc:#ff5c5c;--c-ms:#ffab40;--c-ma:#ffe082;--c-nc:#4da3ff;--c-ns:#2dd4bf;--c-na:#8bd450;}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);
+            font:14px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+  #map{position:absolute;inset:0;background:#0e1116}
+  .leaflet-container{background:#0e1116}
+  #hud{position:absolute;z-index:1000;left:14px;top:14px;width:min(360px,calc(100% - 28px));
+       background:rgba(14,17,22,.92);border:1px solid var(--line);border-radius:12px;padding:12px 14px;
+       backdrop-filter:blur(10px)}
+  h1{font-size:14.5px;margin:0 0 2px;font-weight:600}
+  .sub{color:var(--muted);font-size:11.5px;margin-bottom:10px}
+  .chips{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;padding:5px 8px;border-radius:99px;
+        border:1px solid var(--line);background:#141a22;color:var(--muted);cursor:pointer;user-select:none}
+  .chip i{width:9px;height:9px;border-radius:2px;display:inline-block;opacity:.45}
+  .chip.on{color:var(--fg);border-color:#3b4757;background:#1a2230}
+  .chip.on i{opacity:1}
+  .row{display:flex;align-items:center;gap:8px;margin:8px 0}
+  .seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .seg button{background:#141a22;border:0;color:var(--muted);font:inherit;font-size:11.5px;padding:5px 9px;cursor:pointer}
+  .seg button.on{background:var(--accent);color:#0b0d10;font-weight:600}
+  .sw{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);cursor:pointer;user-select:none}
+  .sw input{accent-color:var(--accent)}
+  #timebar{position:absolute;z-index:1000;left:50%;transform:translateX(-50%);bottom:14px;
+           width:min(900px,calc(100% - 28px));background:rgba(14,17,22,.92);border:1px solid var(--line);
+           border-radius:12px;padding:10px 16px 8px;backdrop-filter:blur(10px)}
+  .tb-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+  #date{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  #stat{color:var(--muted);font-size:11.5px}
+  #play{background:#1a2230;border:1px solid var(--line);color:var(--fg);border-radius:8px;
+        width:34px;height:30px;font-size:13px;cursor:pointer}
+  #play:hover{border-color:#3b4757}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:24px;background:transparent;margin:2px 0 0}
+  input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--line);border-radius:2px}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;margin-top:-5.5px;
+     border-radius:50%;background:var(--accent);border:2px solid var(--bg);cursor:pointer}
+  input[type=range]::-moz-range-track{height:4px;background:var(--line);border-radius:2px}
+  input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--accent);
+     border:2px solid var(--bg);cursor:pointer}
+  #years{position:relative;height:13px;margin-top:-4px;color:#5d6b7d;font-size:10px}
+  #years span{position:absolute;transform:translateX(-50%)}
+  .leaflet-control-attribution{background:rgba(14,17,22,.8)!important;color:#8b96a5!important}
+  .leaflet-control-attribution a{color:var(--accent)!important}
+  .leaflet-tile-pane{filter:grayscale(.75) contrast(.95)}
+  .sat .leaflet-tile-pane{filter:none}
+  .tt{font-size:11.5px;line-height:1.35}
+  #hint{position:absolute;z-index:999;right:14px;bottom:14px;color:#6c7889;font-size:11px;
+        background:rgba(14,17,22,.8);border:1px solid var(--line);border-radius:8px;padding:6px 9px}
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div id="hud">
+  <h1>Concesiones mineras · Panamá</h1>
+  <div class="sub">MICI / Dirección de Recursos Minerales · 2008–2026</div>
+
+  <div class="row" style="margin:2px 0">
+    <div class="seg" id="base">
+      <button data-b="map" class="on">Mapa</button>
+      <button data-b="sat">Satélite</button>
+    </div>
+    <div class="sw"><span id="src" style="color:var(--muted);font-size:11px"></span></div>
+  </div>
+
+  <div class="chips" id="cats"></div>
+
+</div>
+
+<div id="timebar">
+  <div class="tb-top">
+    <div><span id="date">—</span> <span id="stat"></span></div>
+    <button id="play" title="Reproducir">▶︎</button>
+  </div>
+  <input id="slider" type="range" min="0" max="0" value="0">
+  <div id="years"></div>
+</div>
+<div id="hint">2008–2021: geometría DWG · 2022–2026: aproximada por reconocimiento de imagen</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="app.js?v=20"></script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+# Concesiones mineras de Panamá — mapa vectorial 2008–2026
+
+Mapa web (Leaflet) que reconstruye los recintos mineros publicados por el
+**MICI / Dirección de Recursos Minerales** de Panamá. **Todo el contenido es
+vectorial: el sitio no incluye ninguna imagen.**
+
+- **2008-07 → 2021-07** — 167 867 cajas extraídas de los **DWG** oficiales
+  (geometría vectorial real, UTM 17N → WGS84).
+- **2022-01 → 2026-10** — 17 083 cajas obtenidas por **reconocimiento de imagen**
+  (segmentación de color + detección de rectángulos) sobre las hojas PDF.
+
+Total: **141 meses, 184 950 recintos**, 6 MB de JSON.
+
+## Estructura
+
+| archivo | contenido |
+|---|---|
+| `boxes.json` | `{ "YYYY-MM": { "metal/contratos": [[W,S,E,N], …] } }` |
+| `sheets.json` | origen de cada hoja (URL original, Wayback/sitio) |
+| `MANIFEST.csv` | inventario de los 503 archivos fuente descargados |
+
+Categorías: `metal|nometal` × `contratos|solicitudes|ambos`, todas activas por
+defecto.
+
+## Cómo se generó
+
+1. Censo de `mici.gob.pa` + subdominios en la Wayback Machine
+   (82 574 URL; 9 356 PDF, 275 DWG, 96 ZIP).
+2. **DWG**: LibreDWG → DXF; recintos = `LWPOLYLINE`/`POLYLINE`/`HATCH` en capas
+   de concesiones; UTM 17N → WGS84 con TM inversa (validada contra `pyproj`,
+   error < 1 cm); filtro 80 m – 25 km de lado y < 250 km².
+3. **PDF**: rasterizado a 150 dpi, detección de píxeles cartográficos (alta
+   saturación + baja textura) → componentes conexas → cajas que cierran un
+   rectángulo (cobertura de los 4 bordes) o están rellenas; exclusión de
+   leyenda/inset por detección de paneles blancos; filtro 1–25 km.
+4. Georreferencia de cada hoja PDF por mínimos cuadrados sobre su retícula
+   impresa (OCR de `83°00'…77°24'` / `9°54'…6°18'`), residuo < 1 px.
+
+## Límites (importante)
+
+- La era **PDF es aproximada**: la fuente es una imagen, no hay geometría
+  publicada. Se detectan los recintos dibujados como rectángulos de color, pero
+  se pierden los que quedan ocultos bajo etiquetas o muy pequeños, y las cajas
+  son envolventes. Tratar como ~80 % de cobertura, no como catastro exacto.
+- **2021-08 → 2021-11** no tiene ninguna hoja publicada/capturada.
+- Huecos heredados del archivo: 2018 ene–nov, 2020 ene–jul, 2022 jul/oct,
+  2023 dic, 2024 ene–jun y nov–dic.
+- Cada mes es una foto de lo publicado ese mes, no un acumulado histórico.
+- Desde nov-2024 el MICI sólo publica hojas de minerales no metálicos.
+
+## Créditos
+
+Datos públicos del MICI (Panamá); sitio no afiliado. Mapa base © OpenStreetMap;
+imágenes satelitales © Esri, Maxar, Earthstar Geographics.
