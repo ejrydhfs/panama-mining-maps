@@ -31,19 +31,33 @@ boxRenderer.options.pane = 'boxes';
 const label = d => { const [y, m] = d.split('-'); return `${MONTHS[+m - 1]} ${y}`; };
 
 async function boot() {
-  const [boxes, sheets] = await Promise.all([
+  const [boxes, sheets, zones] = await Promise.all([
     fetch('boxes.json').then(r => r.json()).catch(() => ({})),
     fetch('sheets.json').then(r => r.json()).catch(() => ({})),
+    fetch('zones.json').then(r => r.json()).catch(() => []),
   ]);
+  state.zones = zones;
   state.boxes = boxes; state.sheets = sheets;
   state.dates = Object.keys(boxes).sort();
-  buildChips(); buildYears(); bind();
+  buildChips(); buildYears(); bind(); drawZones();
   const sl = document.getElementById('slider');
   sl.max = Math.max(0, state.dates.length - 1);
   render(state.dates.length - 1);
   map.invalidateSize();
   map.fitBounds([[7.05, -83.4], [9.85, -77.0]], { padding: [12, 12] });
   window.addEventListener('resize', () => map.invalidateSize());
+}
+
+function drawZones() {
+  if (!state.zoneLayer) state.zoneLayer = L.layerGroup();
+  state.zoneLayer.clearLayers();
+  for (const ring of (state.zones || [])) {
+    L.polygon(ring.map(([x, y]) => [y, x]), {
+      color: '#7ee787', weight: 1.2, opacity: .8, dashArray: '5 4',
+      fillColor: '#7ee787', fillOpacity: .05, interactive: false
+    }).addTo(state.zoneLayer);
+  }
+  if (state.zonesOn !== false) state.zoneLayer.addTo(map);
 }
 
 function buildChips() {
@@ -112,8 +126,11 @@ function render(i) {
   document.getElementById('stat').innerHTML = n
     ? `· ${n.toLocaleString('es')} recintos`
     : '· sin datos';
-  document.getElementById('src').innerHTML = sh && sh.url
-    ? `<a href="${sh.url}" target="_blank" rel="noopener">${sh.src === 'live' ? 'mici.gob.pa' : 'Wayback'}</a>` : '';
+  const srcEl = document.getElementById('src');
+  if (srcEl) {
+    if (sh && sh.url) { srcEl.href = sh.url; srcEl.textContent = sh.src === 'live' ? 'fuente' : 'wayback'; }
+    else { srcEl.removeAttribute('href'); srcEl.textContent = ''; }
+  }
 }
 
 function bind() {
@@ -132,6 +149,10 @@ function bind() {
       sat ? (map.removeLayer(mapLayer), satLayer.addTo(map)) : (map.removeLayer(satLayer), mapLayer.addTo(map));
       document.body.classList.toggle('sat', sat);
     }
+  };
+  document.getElementById('zones').onchange = e => {
+    state.zonesOn = e.target.checked;
+    if (e.target.checked) state.zoneLayer.addTo(map); else map.removeLayer(state.zoneLayer);
   };
   window.addEventListener('keydown', e => {
     if (e.key === 'ArrowRight') render(Math.min(state.dates.length - 1, state.i + 1));

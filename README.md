@@ -6,16 +6,20 @@ vectorial: el sitio no incluye ninguna imagen.**
 
 - **2008-07 → 2021-07** — 167 867 cajas extraídas de los **DWG** oficiales
   (geometría vectorial real, UTM 17N → WGS84).
-- **2022-01 → 2026-10** — 17 083 cajas obtenidas por **reconocimiento de imagen**
+- **2022-01 → 2026-10** — 16 413 cajas obtenidas por **reconocimiento de imagen**
   (segmentación de color + detección de rectángulos) sobre las hojas PDF.
+- **Áreas protegidas y reservas mineras** — 370 polígonos extraídos de las
+  capas `Areas Protegida` / `RESERVA MINERA` de los DWG, dibujados como capa de
+  contexto (activada por defecto).
 
-Total: **141 meses, 184 950 recintos**, 6 MB de JSON.
+Total: **141 meses, 185 237 recintos**, 5,9 MB de JSON + 0,2 MB de zonas.
 
 ## Estructura
 
 | archivo | contenido |
 |---|---|
 | `boxes.json` | `{ "YYYY-MM": { "metal/contratos": [[W,S,E,N], …] } }` |
+| `zones.json` | polígonos `[[lon,lat],…]` de áreas protegidas / reservas |
 | `sheets.json` | origen de cada hoja (URL original, Wayback/sitio) |
 | `MANIFEST.csv` | inventario de los 503 archivos fuente descargados |
 
@@ -45,6 +49,9 @@ defecto.
 - **2021-08 → 2021-11** no tiene ninguna hoja publicada/capturada.
 - Huecos heredados del archivo: 2018 ene–nov, 2020 ene–jul, 2022 jul/oct,
   2023 dic, 2024 ene–jun y nov–dic.
+- **Las cajas sobre el mar son válidas:** incluyen concesiones de minería
+  submarina / extracción en lecho marino publicadas por el MICI; no son falsos
+  positivos.
 - Cada mes es una foto de lo publicado ese mes, no un acumulado histórico.
 - Desde nov-2024 el MICI sólo publica hojas de minerales no metálicos.
 

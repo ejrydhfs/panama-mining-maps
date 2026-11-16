@@ -70,7 +70,7 @@
       <button data-b="map" class="on">Mapa</button>
       <button data-b="sat">Satélite</button>
     </div>
-    <div class="sw"><span id="src" style="color:var(--muted);font-size:11px"></span></div>
+    <div class="sw"><input type="checkbox" id="zones" checked><label for="zones">áreas protegidas</label></div>
   </div>
 
   <div class="chips" id="cats"></div>
@@ -85,10 +85,10 @@
   <input id="slider" type="range" min="0" max="0" value="0">
   <div id="years"></div>
 </div>
-<div id="hint">2008–2021: geometría DWG · 2022–2026: aproximada por reconocimiento de imagen</div>
+<div id="hint">licencias: 2008–2021 DWG · 2022–2026 reconocidas de la imagen · incluye concesiones marinas y solapes con áreas protegidas · <a id="src" target="_blank" rel="noopener"></a></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="app.js?v=20"></script>
+<script src="app.js?v=30"></script>
 </body>
 </html>
