@@ -11,7 +11,17 @@ const COLOR = Object.fromEntries(CATS.map(([k, , c]) => [k, c]));
 
 const state = {
   boxes: {}, sheets: {}, dates: [], i: 0, playing: null,
-  active: new Set(CATS.map(c => c[0])), layer: null
+  active: new Set(CATS.map(c => c[0])), layer: null,
+  codes: {}, lic: {}, licOk: false, onlyActive: false
+};
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const trunc = (s, n) => { s = String(s); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
+const fmtHa = v => {
+  if (v == null || v === '') return null;
+  if (typeof v === 'number') return v.toLocaleString('es', { maximumFractionDigits: 2 }) + ' ha';
+  const s = String(v).trim();
+  return /ha\b/i.test(s) ? s : s + ' ha';
 };
 
 const map = L.map('map', { zoomControl: true, renderer: L.canvas({ padding: 0.5 }) }).setView([8.5, -80.1], 7);
@@ -31,15 +41,29 @@ boxRenderer.options.pane = 'boxes';
 const label = d => { const [y, m] = d.split('-'); return `${MONTHS[+m - 1]} ${y}`; };
 
 async function boot() {
-  const [boxes, sheets, zones] = await Promise.all([
+  const [boxes, sheets, zones, codes, lic] = await Promise.all([
     fetch('boxes.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('sheets.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('zones.json?t=' + Date.now()).then(r => r.json()).catch(() => []),
+    fetch('boxcodes.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
+    fetch('license.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
   ]);
   state.zones = zones;
   state.boxes = boxes; state.sheets = sheets;
+  state.codes = (codes && typeof codes === 'object') ? codes : {};
+  state.lic = (lic && typeof lic === 'object') ? lic : {};
+  state.licOk = Object.keys(state.lic).length > 0;
   state.dates = Object.keys(boxes).sort();
   buildChips(); buildYears(); bind(); drawZones();
+  const only = document.getElementById('onlyActive');
+  if (!state.licOk) {
+    only.disabled = true;
+    only.title = 'Sin datos de licencias';
+    const sw = only.closest('.sw');
+    if (sw) { sw.title = 'Sin datos de licencias vigentes'; sw.style.opacity = '.5'; sw.style.cursor = 'default'; }
+  } else {
+    only.disabled = false;
+  }
   const sl = document.getElementById('slider');
   sl.max = Math.max(0, state.dates.length - 1);
   render(state.dates.length - 1);
@@ -103,29 +127,52 @@ function render(i) {
 
   if (state.layer) map.removeLayer(state.layer);
   const g = L.layerGroup();
-  let n = 0;
+  let n = 0, nAct = 0;
+  const filter = state.onlyActive && state.licOk;
   const by = state.boxes[date] || {};
   for (const [kind, arr] of Object.entries(by)) {
     if (!state.active.has(kind)) continue;
     const col = COLOR[kind] || '#fff';
     const name = (CATS.find(c => c[0] === kind) || [0, kind])[1];
-    for (const [w, s, e, t] of arr) {
+    const codes = state.codes[date + '|' + kind] || {};
+    const licences = state.lic[date + '|' + kind] || {};
+    for (let k = 0; k < arr.length; k++) {
+      const [w, s, e, t] = arr[k];
+      const code = codes[k];
+      const hasCode = code != null && code !== '';
+      const rec = hasCode ? licences[code] : undefined;
+      const isAct = !!rec && rec.active === true;
+      n++;
+      if (isAct) nAct++;
+      if (filter && !isAct) continue;
+      let popup;
+      if (hasCode) {
+        const bits = [`<b>${esc(code)}</b>`];
+        const who = [];
+        if (rec && rec.company) who.push(esc(rec.company));
+        const ha = rec ? fmtHa(rec.has) : null;
+        if (ha) who.push(esc(ha));
+        if (who.length) bits.push(who.join(' · '));
+        const st = rec ? rec.status : 'sin ficha de licencia';
+        if (st) bits.push(`<span style="color:#8b96a5">${esc(trunc(st, 160))}</span>`);
+        popup = `<div class="tt">${bits.join('<br>')}</div>`;
+      } else {
+        popup = `<div class="tt"><b>${name}</b><br>${((e - w) * 104).toFixed(1)} × ${((t - s) * 110).toFixed(1)} km` +
+          `<br><span style="color:#8b96a5">${s.toFixed(3)}, ${w.toFixed(3)}</span></div>`;
+      }
       L.rectangle([[s, w], [t, e]], {
         renderer: boxRenderer, color: col, weight: 1, opacity: .9,
         fillColor: col, fillOpacity: .16
-      }).bindPopup(
-        `<div class="tt"><b>${name}</b><br>${((e - w) * 104).toFixed(1)} × ${((t - s) * 110).toFixed(1)} km` +
-        `<br><span style="color:#8b96a5">${s.toFixed(3)}, ${w.toFixed(3)}</span></div>`,
-        { closeButton: false }).addTo(g);
-      n++;
+      }).bindPopup(popup, { closeButton: false }).addTo(g);
     }
   }
   state.layer = g.addTo(map);
 
   const sh = state.sheets[date] && Object.values(state.sheets[date])[0];
-  document.getElementById('stat').innerHTML = n
-    ? `· ${n.toLocaleString('es')} recintos`
-    : '· sin datos';
+  const statEl = document.getElementById('stat');
+  statEl.innerHTML = filter
+    ? `· ${nAct.toLocaleString('es')} vigentes / ${n.toLocaleString('es')} total`
+    : n ? `· ${n.toLocaleString('es')} recintos` : '· sin datos';
   const srcEl = document.getElementById('src');
   if (srcEl) {
     if (sh && sh.url) { srcEl.href = sh.url; srcEl.textContent = sh.src === 'live' ? 'fuente' : 'wayback'; }
@@ -153,6 +200,10 @@ function bind() {
   document.getElementById('zones').onchange = e => {
     state.zonesOn = e.target.checked;
     if (e.target.checked) state.zoneLayer.addTo(map); else map.removeLayer(state.zoneLayer);
+  };
+  document.getElementById('onlyActive').onchange = e => {
+    state.onlyActive = e.target.checked;
+    render(state.i);
   };
   window.addEventListener('keydown', e => {
     if (e.key === 'ArrowRight') render(Math.min(state.dates.length - 1, state.i + 1));

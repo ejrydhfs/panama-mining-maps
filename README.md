@@ -18,13 +18,22 @@ Total: **141 meses, 259 059 recintos**, 8,3 MB de JSON + 0,2 MB de zonas.
 
 | archivo | contenido |
 |---|---|
-| `boxes.json` | `{ "YYYY-MM": { "metal/contratos": [[W,S,E,N], …] } }` |
+| `boxes.json` | `{ "YYYY-MM": { "metal/contratos": [[W,S,E,N], …] } }` — 254 363 recintos |
 | `zones.json` | polígonos `[[lon,lat],…]` de áreas protegidas / reservas |
+| `boxcodes.json` | recinto → código de licencia impreso en la hoja (19 745 enlaces) |
+| `license.json` | ficha por código: empresa, tipo, hectáreas, estado, `active` |
 | `sheets.json` | origen de cada hoja (URL original, Wayback/sitio) |
 | `MANIFEST.csv` | inventario de los 503 archivos fuente descargados |
 
 Categorías: `metal|nometal` × `contratos|solicitudes|ambos`, todas activas por
-defecto.
+defecto. Cada recinto enlazado con su ficha muestra código, empresa, superficie y
+estado; la casilla **«solo vigentes»** deja únicamente las licencias activas.
+
+Las fichas salen de las tablas `LISTADO-*` del MICI (157 mes|categoría, 20 783
+filas) y el enlace se hace leyendo el código impreso en cada polígono (OCR a
+resolución nativa, 33 010 códigos). 57 % de los enlaces están confirmados por la
+tabla del mes; el 43 % restante son meses sin tabla publicada o códigos que no
+aparecen en ella.
 
 ## Cómo se generó
 
