@@ -127,7 +127,7 @@ function render(i) {
 
   if (state.layer) map.removeLayer(state.layer);
   const g = L.layerGroup();
-  let n = 0, nAct = 0;
+  let n = 0, nAct = 0, nNoLic = 0;
   const filter = state.onlyActive && state.licOk;
   const by = state.boxes[date] || {};
   for (const [kind, arr] of Object.entries(by)) {
@@ -136,6 +136,7 @@ function render(i) {
     const name = (CATS.find(c => c[0] === kind) || [0, kind])[1];
     const codes = state.codes[date + '|' + kind] || {};
     const licences = state.lic[date + '|' + kind] || {};
+    const hasLic = Object.keys(licences).length > 0;
     for (let k = 0; k < arr.length; k++) {
       const [w, s, e, t] = arr[k];
       const code = codes[k];
@@ -144,7 +145,8 @@ function render(i) {
       const isAct = !!rec && rec.active === true;
       n++;
       if (isAct) nAct++;
-      if (filter && !isAct) continue;
+      if (filter && !hasLic) nNoLic++;
+      if (filter && hasLic && !isAct) continue;
       let popup;
       if (hasCode) {
         const bits = [`<b>${esc(code)}</b>`];
@@ -171,7 +173,8 @@ function render(i) {
   const sh = state.sheets[date] && Object.values(state.sheets[date])[0];
   const statEl = document.getElementById('stat');
   statEl.innerHTML = filter
-    ? `· ${nAct.toLocaleString('es')} vigentes / ${n.toLocaleString('es')} total`
+    ? `· ${nAct.toLocaleString('es')} vigentes / ${(n - nNoLic).toLocaleString('es')} con ficha` +
+      (nNoLic ? ` <span title="mes sin tabla LISTADO: se muestran todos">· ${nNoLic.toLocaleString('es')} sin ficha</span>` : '')
     : n ? `· ${n.toLocaleString('es')} recintos` : '· sin datos';
   const srcEl = document.getElementById('src');
   if (srcEl) {

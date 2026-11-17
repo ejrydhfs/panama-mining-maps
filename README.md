@@ -29,6 +29,9 @@ Categorías: `metal|nometal` × `contratos|solicitudes|ambos`, todas activas por
 defecto. Cada recinto enlazado con su ficha muestra código, empresa, superficie y
 estado; la casilla **«solo vigentes»** deja únicamente las licencias activas.
 
+Los meses sin tabla publicada (2022-01…05, 2022-12, 2023-11) no se filtran: el
+contador indica «N sin ficha» y sus recintos siguen visibles.
+
 Las fichas salen de las tablas `LISTADO-*` del MICI (157 mes|categoría, 20 783
 filas) y el enlace se hace leyendo el código impreso en cada polígono (OCR a
 resolución nativa, 33 010 códigos). 57 % de los enlaces están confirmados por la
