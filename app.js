@@ -32,9 +32,9 @@ const label = d => { const [y, m] = d.split('-'); return `${MONTHS[+m - 1]} ${y}
 
 async function boot() {
   const [boxes, sheets, zones] = await Promise.all([
-    fetch('boxes.json').then(r => r.json()).catch(() => ({})),
-    fetch('sheets.json').then(r => r.json()).catch(() => ({})),
-    fetch('zones.json').then(r => r.json()).catch(() => []),
+    fetch('boxes.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
+    fetch('sheets.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
+    fetch('zones.json?t=' + Date.now()).then(r => r.json()).catch(() => []),
   ]);
   state.zones = zones;
   state.boxes = boxes; state.sheets = sheets;

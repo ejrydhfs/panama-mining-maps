@@ -6,13 +6,13 @@ vectorial: el sitio no incluye ninguna imagen.**
 
 - **2008-07 → 2021-07** — 167 867 cajas extraídas de los **DWG** oficiales
   (geometría vectorial real, UTM 17N → WGS84).
-- **2022-01 → 2026-10** — 75 441 cajas obtenidas por **reconocimiento de imagen**
+- **2022-01 → 2026-10** — 83 585 cajas obtenidas por **reconocimiento de imagen**
   (segmentación de color + detección de rectángulos) sobre las hojas PDF.
 - **Áreas protegidas y reservas mineras** — 370 polígonos extraídos de las
   capas `Areas Protegida` / `RESERVA MINERA` de los DWG, dibujados como capa de
   contexto (activada por defecto).
 
-Total: **141 meses, 244 265 recintos**, 7,8 MB de JSON + 0,2 MB de zonas.
+Total: **141 meses, 252 409 recintos**, 8,1 MB de JSON + 0,2 MB de zonas.
 
 ## Estructura
 
