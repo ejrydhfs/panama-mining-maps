@@ -6,13 +6,13 @@ vectorial: el sitio no incluye ninguna imagen.**
 
 - **2008-07 → 2021-07** — 167 867 cajas extraídas de los **DWG** oficiales
   (geometría vectorial real, UTM 17N → WGS84).
-- **2022-01 → 2026-10** — 83 585 cajas obtenidas por **reconocimiento de imagen**
+- **2022-01 → 2026-10** — 90 235 cajas obtenidas por **reconocimiento de imagen**
   (segmentación de color + detección de rectángulos) sobre las hojas PDF.
 - **Áreas protegidas y reservas mineras** — 370 polígonos extraídos de las
   capas `Areas Protegida` / `RESERVA MINERA` de los DWG, dibujados como capa de
   contexto (activada por defecto).
 
-Total: **141 meses, 252 409 recintos**, 8,1 MB de JSON + 0,2 MB de zonas.
+Total: **141 meses, 259 059 recintos**, 8,3 MB de JSON + 0,2 MB de zonas.
 
 ## Estructura
 
@@ -33,10 +33,11 @@ defecto.
 2. **DWG**: LibreDWG → DXF; recintos = `LWPOLYLINE`/`POLYLINE`/`HATCH` en capas
    de concesiones; UTM 17N → WGS84 con TM inversa (validada contra `pyproj`,
    error < 1 cm); filtro 80 m – 25 km de lado y < 250 km².
-3. **PDF**: rasterizado a 150 dpi, detección de píxeles cartográficos (alta
-   saturación + baja textura) → componentes conexas → cajas que cierran un
-   rectángulo (cobertura de los 4 bordes) o están rellenas; exclusión de
-   leyenda/inset por detección de paneles blancos; filtro 1–25 km.
+3. **PDF**: rasterizado a 200 dpi; el PDF no contiene vectores (una sola
+   imagen JPEG a 250 ppi por página), así que la geometría se reconstruye desde
+   los píxeles: máscara de líneas cartográficas → runs horizontales/verticales
+   (con tolerancia a huecos por las etiquetas) → emparejado de bordes que
+   forman rectángulos axis-aligned → deduplicado por IoU.
 4. Georreferencia de cada hoja PDF por mínimos cuadrados sobre su retícula
    impresa (OCR de `83°00'…77°24'` / `9°54'…6°18'`), residuo < 1 px.
 
