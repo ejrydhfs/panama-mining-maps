@@ -12,7 +12,7 @@ const COLOR = Object.fromEntries(CATS.map(([k, , c]) => [k, c]));
 const state = {
   boxes: {}, sheets: {}, dates: [], i: 0, playing: null,
   active: new Set(CATS.map(c => c[0])), layer: null,
-  codes: {}, lic: {}, licOk: false, onlyActive: false
+  codes: {}, lic: {}, licOk: false, onlyActive: false, onlyCoded: false
 };
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -127,8 +127,9 @@ function render(i) {
 
   if (state.layer) map.removeLayer(state.layer);
   const g = L.layerGroup();
-  let n = 0, nAct = 0, nNoLic = 0;
+  let n = 0, nAct = 0, nNoLic = 0, nCode = 0;
   const filter = state.onlyActive && state.licOk;
+  const codedOnly = state.onlyCoded;
   const by = state.boxes[date] || {};
   for (const [kind, arr] of Object.entries(by)) {
     if (!state.active.has(kind)) continue;
@@ -145,7 +146,9 @@ function render(i) {
       const isAct = !!rec && rec.active === true;
       n++;
       if (isAct) nAct++;
+      if (hasCode) nCode++;
       if (filter && !hasLic) nNoLic++;
+      if (codedOnly && !hasCode) continue;
       if (filter && hasLic && !isAct) continue;
       let popup;
       if (hasCode) {
@@ -172,7 +175,9 @@ function render(i) {
 
   const sh = state.sheets[date] && Object.values(state.sheets[date])[0];
   const statEl = document.getElementById('stat');
-  statEl.innerHTML = filter
+  statEl.innerHTML = codedOnly
+    ? `· ${nCode.toLocaleString('es')} con código / ${n.toLocaleString('es')} total`
+    : filter
     ? `· ${nAct.toLocaleString('es')} vigentes / ${(n - nNoLic).toLocaleString('es')} con ficha` +
       (nNoLic ? ` <span title="mes sin tabla LISTADO: se muestran todos">· ${nNoLic.toLocaleString('es')} sin ficha</span>` : '')
     : n ? `· ${n.toLocaleString('es')} recintos` : '· sin datos';
@@ -203,6 +208,10 @@ function bind() {
   document.getElementById('zones').onchange = e => {
     state.zonesOn = e.target.checked;
     if (e.target.checked) state.zoneLayer.addTo(map); else map.removeLayer(state.zoneLayer);
+  };
+  document.getElementById('onlyCoded').onchange = e => {
+    state.onlyCoded = e.target.checked;
+    render(state.i);
   };
   document.getElementById('onlyActive').onchange = e => {
     state.onlyActive = e.target.checked;
