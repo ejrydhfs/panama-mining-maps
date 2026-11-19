@@ -12,7 +12,7 @@ const COLOR = Object.fromEntries(CATS.map(([k, , c]) => [k, c]));
 const state = {
   boxes: {}, sheets: {}, dates: [], i: 0, playing: null,
   active: new Set(CATS.map(c => c[0])), layer: null,
-  codes: {}, lic: {}, licOk: false, onlyActive: false, onlyCoded: false, evidence: {}, kindFlags: {}, unreliable: new Set()
+  codes: {}, lic: {}, licOk: false, onlyActive: false, onlyCoded: false, evidence: {}, kindFlags: {}, unreliable: new Set(), rowIdx: {}, renderMode: 'points'
 };
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -41,13 +41,14 @@ boxRenderer.options.pane = 'boxes';
 const label = d => { const [y, m] = d.split('-'); return `${MONTHS[+m - 1]} ${y}`; };
 
 async function boot() {
-  const [boxes, sheets, zones, evidence, kindFlags, unreliable, codes, lic] = await Promise.all([
+  const [boxes, sheets, zones, evidence, kindFlags, unreliable, rowIdx, codes, lic] = await Promise.all([
     fetch('boxes.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('sheets.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('zones.json?t=' + Date.now()).then(r => r.json()).catch(() => []),
     fetch('evidence.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('kindflags.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('unreliable.json?t=' + Date.now()).then(r => r.json()).catch(() => []),
+    fetch('licrows.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('boxcodes.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('license.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
   ]);
@@ -55,6 +56,7 @@ async function boot() {
   state.evidence = evidence || {};
   state.kindFlags = kindFlags || {};
   state.unreliable = new Set(unreliable || []);
+  state.rowIdx = rowIdx || {};
   state.boxes = boxes; state.sheets = sheets;
   state.codes = (codes && typeof codes === 'object') ? codes : {};
   state.lic = (lic && typeof lic === 'object') ? lic : {};
@@ -175,13 +177,17 @@ function render(i) {
         if (ficha) bits.push(ficha);
         let st = rec ? rec.status : 'sin ficha · atribución no verificada';
         if (unreliableKey) st = 'ficha no publicada: la tabla del mes y la hoja cubren códigos distintos';
+        const row = (state.rowIdx[date + '|' + kind] || {})[code];
+        const ev = (state.evidence[date + '|' + kind] || {}).table || {};
+        const src = ev.url ? ` · <a href="${ev.url}" target="_blank" rel="noopener">tabla</a>` : '';
+        if (rec && !unreliableKey) st += ` · a fecha de: tabla LISTADO ${date}` + (row ? ` (fila ${row})` : '') + src;
         const kf = (state.kindFlags[date + '|' + kind] || {})[k];
         if (kf) st = `⚠ la tabla del mes lo lista como ${kf} — categoría dudosa · ` + st;
         if (st) bits.push(`<span style="color:#8b96a5">${esc(trunc(st, 160))}</span>`);
         const rep = `https://github.com/ejrydhfs/panama-mining-maps/issues/new?title=` +
           encodeURIComponent(`Error ${date} ${kind} ${code}`) +
           `&body=` + encodeURIComponent(`Mes: ${date}\nCategoría: ${kind}\nCódigo: ${code}\nPolígono (W,S,E,N): ${w},${s},${e},${t}\n\nQué está mal y por qué:`);
-        bits.push(`<span style="color:#8b96a5;font-size:10.5px">envolvente, no lindero · no implica irregularidad · ` +
+        bits.push(`<span style="color:#8b96a5;font-size:10.5px">no prueba ilegalidad · no es un lindero · ` +
           `<a href="${rep}" target="_blank" rel="noopener">reportar error</a> · ` +
           `<a href="legal.html" target="_blank" rel="noopener">aviso legal</a></span>`);
         popup = `<div class="tt">${bits.join('<br>')}</div>`;
@@ -189,10 +195,13 @@ function render(i) {
         popup = `<div class="tt"><b>${name}</b><br>${((e - w) * 104).toFixed(1)} × ${((t - s) * 110).toFixed(1)} km` +
           `<br><span style="color:#8b96a5">${s.toFixed(3)}, ${w.toFixed(3)}</span></div>`;
       }
-      L.rectangle([[s, w], [t, e]], {
-        renderer: boxRenderer, color: col, weight: 1, opacity: .9,
-        fillColor: col, fillOpacity: .16
-      }).bindPopup(popup, { closeButton: false }).addTo(g);
+      const shape = state.renderMode === 'areas'
+        ? L.rectangle([[s, w], [t, e]], { renderer: boxRenderer, color: col, weight: 1, opacity: .9,
+                                           fillColor: col, fillOpacity: .16 })
+        : L.circleMarker([(s + t) / 2, (w + e) / 2], { renderer: boxRenderer, radius: 3.2,
+                                                       color: col, weight: 1, opacity: .95,
+                                                       fillColor: col, fillOpacity: .85 });
+      shape.bindPopup(popup, { closeButton: false }).addTo(g);
     }
   }
   state.layer = g.addTo(map);
@@ -218,6 +227,12 @@ function bind() {
   play.onclick = () => {
     if (state.playing) { clearInterval(state.playing); state.playing = null; play.textContent = '▶︎'; }
     else { play.textContent = '❚❚'; state.playing = setInterval(() => render((state.i + 1) % state.dates.length), 850); }
+  };
+  document.getElementById('mode').onclick = e => {
+    const b = e.target.closest('button'); if (!b) return;
+    [...e.currentTarget.children].forEach(c => c.classList.toggle('on', c === b));
+    state.renderMode = b.dataset.m;
+    render(state.i);
   };
   document.getElementById('base').onclick = e => {
     const b = e.target.closest('button'); if (!b) return;
