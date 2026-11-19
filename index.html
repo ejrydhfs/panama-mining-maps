@@ -130,12 +130,18 @@
     <p>Mapa vectorial de los recintos mineros publicados por el MICI (Dirección de
     Recursos Minerales), 2008-2026. No es un catastro oficial: es una reconstrucción
     a partir de las hojas mensuales que el MICI publicó.</p>
+    <h3>Puntos o áreas</h3>
+    <p>Por defecto cada recinto se dibuja como un <b>punto</b> en su centro: la caja que
+    se reconstruye no es el lindero, y dibujarla llena sugiere límites que no existen.
+    «Áreas» muestra la caja envolvente tal como quedó medida.</p>
     <h3>De dónde sale cada dato</h3>
     <p><b>2008-2021</b> — geometría leída de los DWG oficiales (capas de contratos y
     solicitudes), convertida de UTM 17N a WGS84.<br>
     <b>2021-12 a 2026-10</b> — las hojas ya no son CAD sino un PDF con una sola imagen
     JPEG a 250 ppi; los recintos se reconocen por color y forma y se georreferencian
-    con la retícula impresa de cada hoja.<br>
+    con la retícula impresa de cada hoja; cada código impreso se lee dos veces
+    (a 3× y a 4×) y sólo si ambas lecturas coinciden se publica la ficha de la
+    empresa.<br>
     <b>Fichas</b> — de las tablas LISTADO-* del MICI (264 mes|categoría, 36 214 filas).
     Cada polígono con código impreso se enlaza a su ficha (empresa, hectáreas, estado).</p>
     <h3>Cómo verlo</h3>
@@ -186,6 +192,6 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="app.js?v=81"></script>
+<script src="app.js?v=91"></script>
 </body>
 </html>

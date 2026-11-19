@@ -12,7 +12,7 @@ const COLOR = Object.fromEntries(CATS.map(([k, , c]) => [k, c]));
 const state = {
   boxes: {}, sheets: {}, dates: [], i: 0, playing: null,
   active: new Set(CATS.map(c => c[0])), layer: null,
-  codes: {}, lic: {}, licOk: false, onlyActive: false, onlyCoded: false, evidence: {}, kindFlags: {}, unreliable: new Set(), rowIdx: {}, renderMode: 'points'
+  codes: {}, lic: {}, licOk: false, onlyActive: false, onlyCoded: false, evidence: {}, kindFlags: {}, unreliable: new Set(), rowIdx: {}, renderMode: 'points', codeCheck: {}
 };
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -41,7 +41,7 @@ boxRenderer.options.pane = 'boxes';
 const label = d => { const [y, m] = d.split('-'); return `${MONTHS[+m - 1]} ${y}`; };
 
 async function boot() {
-  const [boxes, sheets, zones, evidence, kindFlags, unreliable, rowIdx, codes, lic] = await Promise.all([
+  const [boxes, sheets, zones, evidence, kindFlags, unreliable, rowIdx, codeCheck, codes, lic] = await Promise.all([
     fetch('boxes.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('sheets.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('zones.json?t=' + Date.now()).then(r => r.json()).catch(() => []),
@@ -49,6 +49,7 @@ async function boot() {
     fetch('kindflags.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('unreliable.json?t=' + Date.now()).then(r => r.json()).catch(() => []),
     fetch('licrows.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
+    fetch('codecheck.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('boxcodes.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('license.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
   ]);
@@ -57,6 +58,7 @@ async function boot() {
   state.kindFlags = kindFlags || {};
   state.unreliable = new Set(unreliable || []);
   state.rowIdx = rowIdx || {};
+  state.codeCheck = codeCheck || {};
   state.boxes = boxes; state.sheets = sheets;
   state.codes = (codes && typeof codes === 'object') ? codes : {};
   state.lic = (lic && typeof lic === 'object') ? lic : {};
@@ -163,10 +165,14 @@ function render(i) {
       let popup;
       if (hasCode) {
         const unreliableKey = state.unreliable.has(date + '|' + kind);
-        const bits = [`<b>${esc(code)}</b>` + (rec && !unreliableKey ? ' <span style="color:#7ee787">✓ tabla</span>' : ' <span style="color:#ffc266">?</span>')];
+        const pdfEra = date >= '2021-12';
+        const baseCode = String(code).replace(/\s*Z\s*\d+$/i, '');
+        const confirmed = !pdfEra || (state.codeCheck[date + '|' + kind] || []).includes(baseCode);
+        const trusted = rec && !unreliableKey && confirmed;
+        const bits = [`<b>${esc(code)}</b>` + (trusted ? ' <span style="color:#7ee787">✓ tabla</span>' : ' <span style="color:#ffc266">?</span>')];
         const who = [];
         let ficha = '';
-        if (rec && rec.company && !unreliableKey) {
+        if (trusted && rec.company) {
           const bitsF = [esc(rec.company)];
           const haF = fmtHa(rec.has);
           if (haF) bitsF.push(esc(haF));
@@ -177,10 +183,11 @@ function render(i) {
         if (ficha) bits.push(ficha);
         let st = rec ? rec.status : 'sin ficha · atribución no verificada';
         if (unreliableKey) st = 'ficha no publicada: la tabla del mes y la hoja cubren códigos distintos';
+        else if (rec && !confirmed) st = 'lectura no confirmada: la relectura a otra escala no coincide · ' + st;
         const row = (state.rowIdx[date + '|' + kind] || {})[code];
         const ev = (state.evidence[date + '|' + kind] || {}).table || {};
         const src = ev.url ? ` · <a href="${ev.url}" target="_blank" rel="noopener">tabla</a>` : '';
-        if (rec && !unreliableKey) st += ` · a fecha de: tabla LISTADO ${date}` + (row ? ` (fila ${row})` : '') + src;
+        if (trusted) st += ` · a fecha de: tabla LISTADO ${date}` + (row ? ` (fila ${row})` : '') + src;
         const kf = (state.kindFlags[date + '|' + kind] || {})[k];
         if (kf) st = `⚠ la tabla del mes lo lista como ${kf} — categoría dudosa · ` + st;
         if (st) bits.push(`<span style="color:#8b96a5">${esc(trunc(st, 160))}</span>`);
