@@ -58,8 +58,10 @@ aparecen en ella.
 Las hojas dibujan también redes de líneas (bordes provinciales, reservas viales)
 que el extractor podía cerrar en rectángulos del tamaño de una provincia. Se descartan las cajas de más de **60 km² (no metálicos)** o **250 km²
 (metálicos)** — los no metálicos son mucho más pequeños en la fuente (mediana
-282 ha frente a 3 299 ha de los metálicos) — y las de contorno rojo de más de
-100 km². 11 334 cajas eliminadas. En la fuente los bloques reales son cuadrados
+282 ha frente a 3 299 ha de los metálicos) —, las de contorno rojo de más de
+100 km² y, en la era PDF, las de contorno rojo no metálicas de más de 25 km²:
+esas son corredores de reserva («Reserva a 300 m del río Chagres», bordes de
+parque) que el extractor cerraba en rectángulos. 17 060 cajas eliminadas. En la fuente los bloques reales son cuadrados
 de 1-6 km.
 
 ## Límites (importante)
