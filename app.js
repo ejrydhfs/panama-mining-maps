@@ -12,7 +12,7 @@ const COLOR = Object.fromEntries(CATS.map(([k, , c]) => [k, c]));
 const state = {
   boxes: {}, sheets: {}, dates: [], i: 0, playing: null,
   active: new Set(CATS.map(c => c[0])), layer: null,
-  codes: {}, lic: {}, licOk: false, onlyActive: false, onlyCoded: false
+  codes: {}, lic: {}, licOk: false, onlyActive: false, onlyCoded: false, evidence: {}
 };
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -41,20 +41,22 @@ boxRenderer.options.pane = 'boxes';
 const label = d => { const [y, m] = d.split('-'); return `${MONTHS[+m - 1]} ${y}`; };
 
 async function boot() {
-  const [boxes, sheets, zones, codes, lic] = await Promise.all([
+  const [boxes, sheets, zones, evidence, codes, lic] = await Promise.all([
     fetch('boxes.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('sheets.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('zones.json?t=' + Date.now()).then(r => r.json()).catch(() => []),
+    fetch('evidence.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('boxcodes.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('license.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
   ]);
   state.zones = zones;
+  state.evidence = evidence || {};
   state.boxes = boxes; state.sheets = sheets;
   state.codes = (codes && typeof codes === 'object') ? codes : {};
   state.lic = (lic && typeof lic === 'object') ? lic : {};
   state.licOk = Object.keys(state.lic).length > 0;
   state.dates = Object.keys(boxes).sort();
-  buildChips(); buildYears(); bind(); drawZones();
+  buildChips(); buildYears(); bind(); drawZones(); bindModals();
   const only = document.getElementById('onlyActive');
   if (!state.licOk) {
     only.disabled = true;
@@ -225,3 +227,70 @@ function bind() {
 }
 
 boot();
+
+
+/* ---------- about / evidence ---------- */
+function bindModals() {
+  const open = id => document.getElementById(id).classList.add('open');
+  const closeAll = () => document.querySelectorAll('.modal').forEach(m => m.classList.remove('open'));
+  document.getElementById('btnAbout').onclick = e => { e.preventDefault(); open('about'); };
+  document.getElementById('btnEvidence').onclick = e => { e.preventDefault(); renderEvidence(); open('evidence'); };
+  document.querySelectorAll('[data-close]').forEach(b => b.onclick = closeAll);
+  document.querySelectorAll('.modal').forEach(m => m.onclick = e => { if (e.target === m) closeAll(); });
+  window.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+}
+
+const KIND_LABEL = {
+  'metal/contratos': 'metálicos · contratos', 'metal/solicitudes': 'metálicos · solicitudes',
+  'metal/ambos': 'metálicos · ambos', 'nometal/contratos': 'no metálicos · contratos',
+  'nometal/solicitudes': 'no metálicos · solicitudes', 'nometal/ambos': 'no metálicos · ambos'
+};
+
+function renderEvidence() {
+  const date = state.dates[state.i] || '';
+  document.getElementById('evDate').textContent = label(date);
+  const host = document.getElementById('evList');
+  host.innerHTML = '';
+  let any = false;
+  for (const [kind, name] of Object.entries(KIND_LABEL)) {
+    const ev = state.evidence[date + '|' + kind];
+    if (!ev) continue;
+    if (!ev.boxes && !(ev.sheet && ev.sheet.url) && !(ev.table && ev.table.url)) continue;
+    any = true;
+    const bits = [`<b>${name}</b>`];
+    const meta = [];
+    meta.push(`${(ev.boxes || 0).toLocaleString('es')} recintos`);
+    if (ev.coded) meta.push(`${ev.coded.toLocaleString('es')} con código`);
+    if (ev.table) meta.push(`tabla: ${ev.table.rows} filas · ${ev.table.active} vigentes`);
+    bits.push(`<span class="m">${meta.join(' · ')}</span>`);
+    const links = [];
+    if (ev.sheet && ev.sheet.url) {
+      links.push(`<a href="${ev.sheet.url}" target="_blank" rel="noopener">hoja PDF</a>`);
+      if (ev.sheet.wb) links.push(`<a href="${ev.sheet.wb}" target="_blank" rel="noopener">Wayback</a>`);
+    }
+    if (ev.table && ev.table.url) {
+      links.push(`<a href="${ev.table.url}" target="_blank" rel="noopener">tabla LISTADO</a>`);
+      if (ev.table.wb) links.push(`<a href="${ev.table.wb}" target="_blank" rel="noopener">Wayback</a>`);
+    }
+    if (ev.dwg && ev.dwg.length) {
+      ev.dwg.forEach((f, i) => links.push(
+        `<a href="${f.url}" target="_blank" rel="noopener">DWG${ev.dwg.length > 1 ? ' ' + (i + 1) : ''}</a>` +
+        ` (<a href="${f.wb}" target="_blank" rel="noopener">WB</a>)`));
+    }
+    bits.push(links.join(' · '));
+    const d = document.createElement('div');
+    d.className = 'evrow';
+    d.innerHTML = bits.join('<br>');
+    host.appendChild(d);
+  }
+  for (const [kind, name] of Object.entries(KIND_LABEL)) {
+    if (date + '|' + kind in state.evidence) continue;
+    if (!state.boxes[date] || !state.boxes[date][kind]) continue;
+    const d = document.createElement('div');
+    d.className = 'evrow';
+    d.innerHTML = `<b>${name}</b><br><span class="m">sin PDF indexado para este mes</span>`;
+    host.appendChild(d);
+    any = true;
+  }
+  if (!any) host.innerHTML = '<div class="evrow"><span class="m">Sin datos para este mes.</span></div>';
+}
