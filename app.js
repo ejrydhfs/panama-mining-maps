@@ -70,7 +70,9 @@ async function boot() {
   }
   const sl = document.getElementById('slider');
   sl.max = Math.max(0, state.dates.length - 1);
-  render(state.dates.length - 1);
+  const want = new URLSearchParams(location.search).get('m');
+  const startIdx = (want && state.dates.includes(want)) ? state.dates.indexOf(want) : state.dates.length - 1;
+  render(startIdx);
   map.invalidateSize();
   map.fitBounds([[7.05, -83.4], [9.85, -77.0]], { padding: [12, 12] });
   window.addEventListener('resize', () => map.invalidateSize());
