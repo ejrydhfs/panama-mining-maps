@@ -183,7 +183,7 @@ function render(i) {
         if (ficha) bits.push(ficha);
         let st = rec ? rec.status : 'sin ficha · atribución no verificada';
         if (unreliableKey) st = 'ficha no publicada: la tabla del mes y la hoja cubren códigos distintos';
-        else if (rec && !confirmed) st = 'lectura no confirmada: la relectura a otra escala no coincide · ' + st;
+        else if (rec && !confirmed) st = 'lectura no confirmada: la relectura a otra escala no coincide · ficha no publicada';
         const row = (state.rowIdx[date + '|' + kind] || {})[code];
         const ev = (state.evidence[date + '|' + kind] || {}).table || {};
         const src = ev.url ? ` · <a href="${ev.url}" target="_blank" rel="noopener">tabla</a>` : '';
