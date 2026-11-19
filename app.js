@@ -163,10 +163,16 @@ function render(i) {
         const unreliableKey = state.unreliable.has(date + '|' + kind);
         const bits = [`<b>${esc(code)}</b>` + (rec && !unreliableKey ? ' <span style="color:#7ee787">✓ tabla</span>' : ' <span style="color:#ffc266">?</span>')];
         const who = [];
-        if (rec && rec.company && !unreliableKey) who.push(esc(rec.company));
-        const ha = (rec && !unreliableKey) ? fmtHa(rec.has) : null;
-        if (ha) who.push(esc(ha));
-        if (who.length) bits.push(who.join(' · '));
+        let ficha = '';
+        if (rec && rec.company && !unreliableKey) {
+          const bitsF = [esc(rec.company)];
+          const haF = fmtHa(rec.has);
+          if (haF) bitsF.push(esc(haF));
+          ficha = `<details><summary style="cursor:pointer;color:#7cc4ff">ver ficha de la empresa</summary>` +
+                  `<span style="color:#d7e0ec">${bitsF.join(' · ')}</span></details>`;
+        }
+
+        if (ficha) bits.push(ficha);
         let st = rec ? rec.status : 'sin ficha · atribución no verificada';
         if (unreliableKey) st = 'ficha no publicada: la tabla del mes y la hoja cubren códigos distintos';
         const kf = (state.kindFlags[date + '|' + kind] || {})[k];
