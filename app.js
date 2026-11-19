@@ -172,6 +172,12 @@ function render(i) {
         const kf = (state.kindFlags[date + '|' + kind] || {})[k];
         if (kf) st = `⚠ la tabla del mes lo lista como ${kf} — categoría dudosa · ` + st;
         if (st) bits.push(`<span style="color:#8b96a5">${esc(trunc(st, 160))}</span>`);
+        const rep = `https://github.com/ejrydhfs/panama-mining-maps/issues/new?title=` +
+          encodeURIComponent(`Error ${date} ${kind} ${code}`) +
+          `&body=` + encodeURIComponent(`Mes: ${date}\nCategoría: ${kind}\nCódigo: ${code}\nPolígono (W,S,E,N): ${w},${s},${e},${t}\n\nQué está mal y por qué:`);
+        bits.push(`<span style="color:#8b96a5;font-size:10.5px">envolvente, no lindero · no implica irregularidad · ` +
+          `<a href="${rep}" target="_blank" rel="noopener">reportar error</a> · ` +
+          `<a href="legal.html" target="_blank" rel="noopener">aviso legal</a></span>`);
         popup = `<div class="tt">${bits.join('<br>')}</div>`;
       } else {
         popup = `<div class="tt"><b>${name}</b><br>${((e - w) * 104).toFixed(1)} × ${((t - s) * 110).toFixed(1)} km` +
