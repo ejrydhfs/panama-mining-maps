@@ -53,6 +53,15 @@ aparecen en ella.
 4. Georreferencia de cada hoja PDF por mínimos cuadrados sobre su retícula
    impresa (OCR de `83°00'…77°24'` / `9°54'…6°18'`), residuo < 1 px.
 
+## Tope de superficie (era PDF)
+
+Las hojas dibujan también redes de líneas (bordes provinciales, reservas viales)
+que el extractor podía cerrar en rectángulos del tamaño de una provincia. Se
+descartan las cajas de más de **150 km² (no metálicos)** o **800 km² (metálicos)**,
+y cualquier caja de contorno rojo de más de 100 km²: 7 207 cajas eliminadas.
+Los recintos no metálicos ya no pasan de ~150 km²; en la fuente, los bloques
+reales son cuadrados de 1-6 km.
+
 ## Límites (importante)
 
 - La era **PDF es aproximada**: la fuente es una imagen, no hay geometría
