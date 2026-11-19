@@ -56,8 +56,8 @@ aparecen en ella.
 ## Tope de superficie (era PDF)
 
 Las hojas dibujan también redes de líneas (bordes provinciales, reservas viales)
-que el extractor podía cerrar en rectángulos del tamaño de una provincia. Se descartan las cajas de más de **60 km² (no metálicos)** o **250 km²
-(metálicos)** — los no metálicos son mucho más pequeños en la fuente (mediana
+que el extractor podía cerrar en rectángulos del tamaño de una provincia. Se descartan las cajas de más de **5 km de lado (no metálicos)** o **20 km
+(metálicos)** — además de los topes de área de 60/250 km² — los no metálicos son mucho más pequeños en la fuente (mediana
 282 ha frente a 3 299 ha de los metálicos) —, las de contorno rojo de más de
 100 km² y, en la era PDF, las de contorno rojo no metálicas de más de 25 km²:
 esas son corredores de reserva («Reserva a 300 m del río Chagres», bordes de
