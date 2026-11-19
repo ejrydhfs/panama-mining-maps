@@ -145,8 +145,22 @@
       <li>Meses sin tabla publicada (2022-01…05, 2022-12, 2023-11) no se pueden filtrar por vigencia.</li>
       <li>Huecos de publicación: 2018 ene-nov, 2020 ene-jul, 2021 ago-nov, 2022 jul/oct, 2023 dic, 2024 ene-jun y nov-dic.</li>
     </ul>
+    <h3>Riesgo de atribución</h3>
+    <p>Las cajas son <b>envolventes</b>, no linderos legales. Una ficha (empresa,
+    hectáreas, estado) sólo se muestra cuando el código impreso coincide con una fila
+    de la tabla LISTADO de ese mismo mes; si no, el recinto aparece como
+    <b>«sin ficha · atribución no verificada»</b>. Los meses sin tabla publicada no
+    llevan empresa asociada. El
+    <a href="review.html" target="_blank" rel="noopener">informe adversarial</a> lista,
+    mes por mes, qué afirmaciones no sostiene la evidencia. Verificado a mano:
+    la tabla de 2019-10 lista 14 contratos metálicos mientras la hoja dibuja 216
+    códigos, y en 2017-06 los códigos <code>1995-16</code>, <code>96-47</code> y
+    <code>92-04</code> no aparecen en el texto del PDF. Es decir, el aviso señala
+    cobertura incompleta del editor, no un error de la página; los recintos sin
+    coincidencia se muestran con «?» y sin empresa.</p>
     <h3>Enlaces</h3>
-    <p><a href="https://github.com/ejrydhfs/panama-mining-maps" target="_blank" rel="noopener">Código y datos (GitHub)</a> ·
+    <p><a href="review.html" target="_blank" rel="noopener">Informe adversarial por mes</a> ·
+       <a href="https://github.com/ejrydhfs/panama-mining-maps" target="_blank" rel="noopener">Código y datos (GitHub)</a> ·
        <a href="MANIFEST.csv" target="_blank" rel="noopener">Manifiesto de los 503 archivos fuente</a> ·
        <a href="https://mici.gob.pa/" target="_blank" rel="noopener">MICI</a></p>
   </div>
@@ -167,6 +181,6 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="app.js?v=53"></script>
+<script src="app.js?v=61"></script>
 </body>
 </html>
