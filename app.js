@@ -12,7 +12,7 @@ const COLOR = Object.fromEntries(CATS.map(([k, , c]) => [k, c]));
 const state = {
   boxes: {}, sheets: {}, dates: [], i: 0, playing: null,
   active: new Set(CATS.map(c => c[0])), layer: null,
-  codes: {}, lic: {}, licOk: false, onlyActive: false, onlyCoded: false, evidence: {}, kindFlags: {}
+  codes: {}, lic: {}, licOk: false, onlyActive: false, onlyCoded: false, evidence: {}, kindFlags: {}, unreliable: new Set()
 };
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -41,18 +41,20 @@ boxRenderer.options.pane = 'boxes';
 const label = d => { const [y, m] = d.split('-'); return `${MONTHS[+m - 1]} ${y}`; };
 
 async function boot() {
-  const [boxes, sheets, zones, evidence, kindFlags, codes, lic] = await Promise.all([
+  const [boxes, sheets, zones, evidence, kindFlags, unreliable, codes, lic] = await Promise.all([
     fetch('boxes.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('sheets.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('zones.json?t=' + Date.now()).then(r => r.json()).catch(() => []),
     fetch('evidence.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('kindflags.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
+    fetch('unreliable.json?t=' + Date.now()).then(r => r.json()).catch(() => []),
     fetch('boxcodes.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('license.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
   ]);
   state.zones = zones;
   state.evidence = evidence || {};
   state.kindFlags = kindFlags || {};
+  state.unreliable = new Set(unreliable || []);
   state.boxes = boxes; state.sheets = sheets;
   state.codes = (codes && typeof codes === 'object') ? codes : {};
   state.lic = (lic && typeof lic === 'object') ? lic : {};
@@ -158,13 +160,15 @@ function render(i) {
       if (filter && hasLic && !isAct) continue;
       let popup;
       if (hasCode) {
-        const bits = [`<b>${esc(code)}</b>` + (rec ? ' <span style="color:#7ee787">✓ tabla</span>' : ' <span style="color:#ffc266">?</span>')];
+        const unreliableKey = state.unreliable.has(date + '|' + kind);
+        const bits = [`<b>${esc(code)}</b>` + (rec && !unreliableKey ? ' <span style="color:#7ee787">✓ tabla</span>' : ' <span style="color:#ffc266">?</span>')];
         const who = [];
-        if (rec && rec.company) who.push(esc(rec.company));
-        const ha = rec ? fmtHa(rec.has) : null;
+        if (rec && rec.company && !unreliableKey) who.push(esc(rec.company));
+        const ha = (rec && !unreliableKey) ? fmtHa(rec.has) : null;
         if (ha) who.push(esc(ha));
         if (who.length) bits.push(who.join(' · '));
         let st = rec ? rec.status : 'sin ficha · atribución no verificada';
+        if (unreliableKey) st = 'ficha no publicada: la tabla del mes y la hoja cubren códigos distintos';
         const kf = (state.kindFlags[date + '|' + kind] || {})[k];
         if (kf) st = `⚠ la tabla del mes lo lista como ${kf} — categoría dudosa · ` + st;
         if (st) bits.push(`<span style="color:#8b96a5">${esc(trunc(st, 160))}</span>`);
