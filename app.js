@@ -202,7 +202,10 @@ function render(i) {
         if (trusted) {
           src = `<span style="color:#8b96a5;font-size:11px">a fecha de: tabla LISTADO de ${label(date)}` +
                 (prow ? ` (pág. ${page}, fila ${prow} de esa página)` : '') + `</span> `;
-          if (ev.url) src += `<a href="${escAttr(ev.url)}#page=${page}" target="_blank" rel="noopener" style="font-size:11px">ver tabla</a>`;
+          if (ev.url) {
+            const anchor = (rc && rc.p) ? '#page=' + page : '';
+            src += `<a href="${escAttr(ev.url)}${anchor}" target="_blank" rel="noopener" style="font-size:11px">ver tabla</a>`;
+          }
           else if (ev.wb) src += `<a href="${escAttr(ev.wb)}" target="_blank" rel="noopener" style="font-size:11px">tabla en Wayback</a>`;
         }
         const kf = (state.kindFlags[date + '|' + kind] || {})[k];
