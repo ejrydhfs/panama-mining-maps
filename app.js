@@ -17,6 +17,9 @@ const state = {
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+function escAttr(v) {
+  return String(v).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
 function canonCode(c) {
   const m = String(c).trim().match(/^(\d+)\s*-\s*(\d+)/);
   return m ? parseInt(m[1], 10) + '-' + parseInt(m[2], 10) : String(c).trim();
@@ -193,13 +196,14 @@ function render(i) {
         if (unreliableKey) st = 'ficha no publicada: la tabla del mes y la hoja cubren códigos distintos';
         else if (rec && !confirmed) st = 'lectura no confirmada: la relectura a otra escala no coincide · ficha no publicada';
         const rc = (state.rowIdx[date + '|' + kind] || {})[code];
-        const row = rc && rc.f, page = (rc && rc.p) || 1;
+        const page = (rc && rc.p) || 1, prow = rc && rc.r, row = rc && rc.f;
         const ev = (state.evidence[date + '|' + kind] || {}).table || {};
         let src = '';
         if (trusted) {
           src = `<span style="color:#8b96a5;font-size:11px">a fecha de: tabla LISTADO de ${label(date)}` +
-                (row ? ` (pág. ${page}, fila ${row})` : '') + `</span> `;
-          if (ev.url) src += `<a href="${ev.url}#page=${page}" target="_blank" rel="noopener" style="font-size:11px">ver tabla</a>`;
+                (prow ? ` (pág. ${page}, fila ${prow} de esa página)` : '') + `</span> `;
+          if (ev.url) src += `<a href="${escAttr(ev.url)}#page=${page}" target="_blank" rel="noopener" style="font-size:11px">ver tabla</a>`;
+          else if (ev.wb) src += `<a href="${escAttr(ev.wb)}" target="_blank" rel="noopener" style="font-size:11px">tabla en Wayback</a>`;
         }
         const kf = (state.kindFlags[date + '|' + kind] || {})[k];
         if (kf) st = `⚠ la tabla del mes lo lista como ${kf} — categoría dudosa · ` + st;
