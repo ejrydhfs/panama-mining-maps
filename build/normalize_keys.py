@@ -1,9 +1,11 @@
-"""Add canonical (norm_code) aliases to license.json and licrows.json.
+"""Add canonical (norm_code) aliases to license.json.
 
-The map's codes come from join_codes.norm_code() ('83-6' -> '83-06', '2005.03' ->
-'2005-03'), while the listado tables keep the cell text ('83-6'). A code that only
-matches after normalisation lost both its ficha and its page citation, so the alias
-is added rather than the raw key renamed (raw stays authoritative).
+The map's codes come from join_codes.norm_code() ('83-6' -> '83-06'), while the
+listado tables keep the cell text ('83-6'). A code that only matches after
+normalisation lost both its ficha and its page citation, so an alias key is added
+next to the raw one (raw stays authoritative) and marked `_alias: True` so that no
+count scores it twice. licrows.json carries the same aliases, emitted by
+rows_index.py.
 """
 import json, os, re
 

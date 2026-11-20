@@ -4,6 +4,8 @@
 
 `r` is what a reader can locate: the ordinal restarts on every page, because the
 PDFs print no row numbers. `p` feeds the #page= anchor of the evidence link.
+Every code also gets its norm_code() spelling as an alias key marked `_alias: True`
+('83-6' -> '83-06'), because the map matches licence codes in canonical form.
 """
 import json, os, re, sys
 
