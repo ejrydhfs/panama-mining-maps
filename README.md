@@ -20,8 +20,8 @@ Total: **141 meses, 259 059 recintos**, 8,3 MB de JSON + 0,2 MB de zonas.
 |---|---|
 | `boxes.json` | `{ "YYYY-MM": { "metal/contratos": [[W,S,E,N], …] } }` — 254 363 recintos |
 | `zones.json` | polígonos `[[lon,lat],…]` de áreas protegidas / reservas |
-| `boxcodes.json` | recinto → código de licencia (173 415 enlaces: 154 156 de la era DWG, 19 259 de la era PDF) |
-| `license.json` | ficha por código: empresa, tipo, hectáreas, estado, `active` (216 mes\|categoría, 33 000 fichas) |
+| `boxcodes.json` | recinto → código de licencia (163 149 enlaces: 152 538 de la era DWG, 10 611 de la era raster) |
+| `license.json` | ficha por código: empresa, tipo, hectáreas, estado, `active` (216 mes\|categoría, 33 000 fichas + 334 alias canónicos marcados `_alias`) |
 | `sheets.json` | origen de cada hoja (URL original, Wayback/sitio) |
 | `MANIFEST.csv` | inventario de los 503 archivos fuente descargados |
 
@@ -34,9 +34,10 @@ contador indica «N sin ficha» y sus recintos siguen visibles.
 
 Las fichas salen de las tablas `LISTADO-*` del MICI (264 mes|categoría, 36 214
 filas, recuperadas de Wayback) y el enlace se hace leyendo el código impreso en cada polígono (OCR a
-resolución nativa, 33 010 códigos). 57 % de los enlaces están confirmados por la
-tabla del mes; el 43 % restante son meses sin tabla publicada o códigos que no
-aparecen en ella.
+resolución nativa, 33 010 lecturas de etiqueta). De los 10 611 recintos de la era
+raster, 6 646 tienen ficha (98 % de ellos con la relectura OCR concordante) y
+3 965 no aparecen en la tabla del mes; en la era DWG la tabla sólo existe desde
+2017-06, así que 105 289 enlaces anteriores a esa fecha no tienen ficha.
 
 ## Cómo se generó
 
