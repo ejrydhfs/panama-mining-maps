@@ -16,6 +16,11 @@ const state = {
 };
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function canonCode(c) {
+  const m = String(c).trim().match(/^(\d+)\s*-\s*(\d+)/);
+  return m ? parseInt(m[1], 10) + '-' + parseInt(m[2], 10) : String(c).trim();
+}
 const trunc = (s, n) => { s = String(s); return s.length > n ? s.slice(0, n - 1) + '…' : s; };
 const fmtHa = v => {
   if (v == null || v === '') return null;
@@ -59,6 +64,9 @@ async function boot() {
   state.unreliable = new Set(unreliable || []);
   state.rowIdx = rowIdx || {};
   state.codeCheck = codeCheck || {};
+  state.codeSets = {};
+  for (const [k, list] of Object.entries(state.codeCheck)) state.codeSets[k] = new Set(list.map(canonCode));
+  state.gateOn = Object.keys(state.codeCheck).length > 0;
   state.boxes = boxes; state.sheets = sheets;
   state.codes = (codes && typeof codes === 'object') ? codes : {};
   state.lic = (lic && typeof lic === 'object') ? lic : {};
@@ -166,8 +174,8 @@ function render(i) {
       if (hasCode) {
         const unreliableKey = state.unreliable.has(date + '|' + kind);
         const pdfEra = date >= '2021-12';
-        const baseCode = String(code).replace(/\s*Z\s*\d+$/i, '');
-        const confirmed = !pdfEra || (state.codeCheck[date + '|' + kind] || []).includes(baseCode);
+        const confirmed = !pdfEra || !state.gateOn ||
+          (state.codeSets[date + '|' + kind] || new Set()).has(canonCode(code));
         const trusted = rec && !unreliableKey && confirmed;
         const bits = [`<b>${esc(code)}</b>` + (trusted ? ' <span style="color:#7ee787">✓ tabla</span>' : ' <span style="color:#ffc266">?</span>')];
         const who = [];
@@ -186,11 +194,16 @@ function render(i) {
         else if (rec && !confirmed) st = 'lectura no confirmada: la relectura a otra escala no coincide · ficha no publicada';
         const row = (state.rowIdx[date + '|' + kind] || {})[code];
         const ev = (state.evidence[date + '|' + kind] || {}).table || {};
-        const src = ev.url ? ` · <a href="${ev.url}" target="_blank" rel="noopener">tabla</a>` : '';
-        if (trusted) st += ` · a fecha de: tabla LISTADO ${date}` + (row ? ` (fila ${row})` : '') + src;
+        let src = '';
+        if (trusted) {
+          src = `<span style="color:#8b96a5;font-size:11px">a fecha de: tabla LISTADO de ${label(date)}` +
+                (row ? ` (fila ${row})` : '') + `</span> `;
+          if (ev.url) src += `<a href="${ev.url}#page=1" target="_blank" rel="noopener" style="font-size:11px">ver tabla</a>`;
+        }
         const kf = (state.kindFlags[date + '|' + kind] || {})[k];
         if (kf) st = `⚠ la tabla del mes lo lista como ${kf} — categoría dudosa · ` + st;
         if (st) bits.push(`<span style="color:#8b96a5">${esc(trunc(st, 160))}</span>`);
+        if (src) bits.push(src);
         const rep = `https://github.com/ejrydhfs/panama-mining-maps/issues/new?title=` +
           encodeURIComponent(`Error ${date} ${kind} ${code}`) +
           `&body=` + encodeURIComponent(`Mes: ${date}\nCategoría: ${kind}\nCódigo: ${code}\nPolígono (W,S,E,N): ${w},${s},${e},${t}\n\nQué está mal y por qué:`);
