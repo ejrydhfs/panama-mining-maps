@@ -35,7 +35,9 @@ contador indica «N sin ficha» y sus recintos siguen visibles.
 Las fichas salen de las tablas `LISTADO-*` del MICI (264 mes|categoría, 36 214
 filas, recuperadas de Wayback) y el enlace se hace leyendo el código impreso en cada polígono (OCR a
 resolución nativa, 33 010 lecturas de etiqueta). De los 10 611 recintos de la era
-raster, 6 646 tienen ficha y 3 965 no aparecen en la tabla del mes; de esos 10 611
+raster, 6 646 tienen ficha y 3 965 no se enlazan: 3 674 no aparecen en la tabla del
+mes, 289 son truncamientos que la tabla admitiría tras una reparación inequívoca (no se
+enlazan sin confirmación de la segunda lectura) y 2 son ambiguos; de esos 10 611
 recintos, 10 396 (98 %) tienen además la relectura OCR concordante; en la era DWG la tabla sólo existe desde
 2017-06, así que 105 289 enlaces anteriores a esa fecha no tienen ficha.
 
