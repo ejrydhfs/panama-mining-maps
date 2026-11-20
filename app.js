@@ -192,13 +192,14 @@ function render(i) {
         let st = rec ? rec.status : 'sin ficha · atribución no verificada';
         if (unreliableKey) st = 'ficha no publicada: la tabla del mes y la hoja cubren códigos distintos';
         else if (rec && !confirmed) st = 'lectura no confirmada: la relectura a otra escala no coincide · ficha no publicada';
-        const row = (state.rowIdx[date + '|' + kind] || {})[code];
+        const rc = (state.rowIdx[date + '|' + kind] || {})[code];
+        const row = rc && rc.f, page = (rc && rc.p) || 1;
         const ev = (state.evidence[date + '|' + kind] || {}).table || {};
         let src = '';
         if (trusted) {
           src = `<span style="color:#8b96a5;font-size:11px">a fecha de: tabla LISTADO de ${label(date)}` +
-                (row ? ` (fila ${row})` : '') + `</span> `;
-          if (ev.url) src += `<a href="${ev.url}#page=1" target="_blank" rel="noopener" style="font-size:11px">ver tabla</a>`;
+                (row ? ` (pág. ${page}, fila ${row})` : '') + `</span> `;
+          if (ev.url) src += `<a href="${ev.url}#page=${page}" target="_blank" rel="noopener" style="font-size:11px">ver tabla</a>`;
         }
         const kf = (state.kindFlags[date + '|' + kind] || {})[k];
         if (kf) st = `⚠ la tabla del mes lo lista como ${kf} — categoría dudosa · ` + st;
