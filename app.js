@@ -179,8 +179,9 @@ function render(i) {
       if (hasCode) {
         const unreliableKey = state.unreliable.has(date + '|' + kind);
         const pdfEra = date >= '2021-12';
-        const confirmed = !pdfEra || !state.gateOn ||
-          (state.codeSets[date + '|' + kind] || new Set()).has(canonCode(code));
+        const keySet = state.codeSets[date + '|' + kind];
+        const covered = !!keySet;
+        const confirmed = !pdfEra || !state.gateOn || (covered && keySet.has(canonCode(code)));
         const trusted = rec && !unreliableKey && confirmed;
         const bits = [`<b>${esc(code)}</b>` + (trusted ? ' <span style="color:#7ee787">✓ tabla</span>' : ' <span style="color:#ffc266">?</span>')];
         const who = [];
@@ -202,7 +203,9 @@ function render(i) {
         if (ficha) bits.push(ficha);
         let st = rec ? rec.status : 'sin ficha · atribución no verificada';
         if (unreliableKey) st = 'ficha no publicada: la tabla del mes y la hoja cubren códigos distintos';
-        else if (rec && !confirmed) st = 'lectura no confirmada: la relectura a otra escala no coincide · ficha no publicada';
+        else if (rec && !confirmed) st = covered
+          ? 'lectura no confirmada: la relectura a otra escala no coincide · ficha no publicada'
+          : 'relectura no disponible en esta hoja · ficha no publicada';
         const rc = (state.rowIdx[date + '|' + kind] || {})[code];
         const page = (rc && rc.p) || 1, prow = rc && rc.r, row = rc && rc.f;
         const ev = (state.evidence[date + '|' + kind] || {}).table || {};
