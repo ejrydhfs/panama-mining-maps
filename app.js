@@ -12,7 +12,7 @@ const COLOR = Object.fromEntries(CATS.map(([k, , c]) => [k, c]));
 const state = {
   boxes: {}, sheets: {}, dates: [], i: 0, playing: null,
   active: new Set(CATS.map(c => c[0])), layer: null,
-  codes: {}, lic: {}, licOk: false, onlyActive: false, onlyCoded: false, evidence: {}, kindFlags: {}, unreliable: new Set(), rowIdx: {}, renderMode: 'points', codeCheck: {}
+  codes: {}, lic: {}, licOk: false, onlyActive: false, onlyCoded: false, evidence: {}, kindFlags: {}, unreliable: new Set(), rowIdx: {}, renderMode: 'points', codeCheck: {}, georef: {}
 };
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -49,7 +49,7 @@ boxRenderer.options.pane = 'boxes';
 const label = d => { const [y, m] = d.split('-'); return `${MONTHS[+m - 1]} ${y}`; };
 
 async function boot() {
-  const [boxes, sheets, zones, evidence, kindFlags, unreliable, rowIdx, codeCheck, codes, lic] = await Promise.all([
+  const [boxes, sheets, zones, evidence, kindFlags, unreliable, rowIdx, codeCheck, georef, codes, lic] = await Promise.all([
     fetch('boxes.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('sheets.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('zones.json?t=' + Date.now()).then(r => r.json()).catch(() => []),
@@ -58,6 +58,7 @@ async function boot() {
     fetch('unreliable.json?t=' + Date.now()).then(r => r.json()).catch(() => []),
     fetch('licrows.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('codecheck.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
+    fetch('georef.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('boxcodes.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
     fetch('license.json?t=' + Date.now()).then(r => r.json()).catch(() => ({})),
   ]);
@@ -67,6 +68,7 @@ async function boot() {
   state.unreliable = new Set(unreliable || []);
   state.rowIdx = rowIdx || {};
   state.codeCheck = codeCheck || {};
+  state.georef = georef || {};
   state.codeSets = {};
   for (const [k, list] of Object.entries(state.codeCheck)) state.codeSets[k] = new Set(list.map(canonCode));
   state.gateOn = Object.keys(state.codeCheck).length > 0;
@@ -191,6 +193,9 @@ function render(i) {
                   `<span style="color:#d7e0ec">${bitsF.join(' · ')}</span></details>`;
         }
 
+        if (state.georef[date + '|' + kind]) {
+          bits.unshift(`<span style="color:#ffc266">⚠ hoja georreferenciada por plantilla: la posición puede estar desplazada</span>`);
+        }
         if (ficha) bits.push(ficha);
         let st = rec ? rec.status : 'sin ficha · atribución no verificada';
         if (unreliableKey) st = 'ficha no publicada: la tabla del mes y la hoja cubren códigos distintos';
