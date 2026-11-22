@@ -16,3 +16,9 @@ se obtiene cada cifra; **no** son ejecutables desde aquí: esperan el layout
 | `legal_page.py` | `legal.html` |
 
 Copia canónica del código ejecutable: `build/rows_index.py` y `build/normalize_keys.py`.
+
+Comprobación de que las copias siguen en fase con el árbol de trabajo:
+
+```bash
+for f in *.py; do diff -q "$f" "../../../site_build/$f" || echo "DRIFT $f"; done
+```
