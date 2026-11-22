@@ -194,7 +194,7 @@ function render(i) {
         }
 
         if (state.georef[date + '|' + kind]) {
-          bits.unshift(`<span style="color:#ffc266">⚠ hoja georreferenciada por plantilla: la posición puede estar desplazada</span>`);
+          bits.unshift(`<span style="color:#ffc266">⚠ hoja georreferenciada por plantilla: posición no verificada</span>`);
         }
         if (ficha) bits.push(ficha);
         let st = rec ? rec.status : 'sin ficha · atribución no verificada';
