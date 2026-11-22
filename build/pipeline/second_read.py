@@ -27,10 +27,15 @@ def main():
     jobs = C.resolve_jobs()
     todo = [j for j in jobs if not os.path.exists(os.path.join(C.OUTDIR, j[0] + '.json'))]
     print('sheets', len(todo), 'of', len(jobs), flush=True)
+    errors = {}
     with Pool(6) as pool:
         for i, r in enumerate(pool.imap_unordered(C.process, todo, chunksize=1), 1):
+            if r[6]:
+                errors[r[0]] = r[6]
             if i % 20 == 0:
                 print('done', i, '/', len(todo), flush=True)
+    if errors:
+        print('sheets with errors', len(errors), list(errors.items())[:3], flush=True)
     out = {}
     old_dir = os.path.join(HERE, 'codes')
     for fn in sorted(os.listdir(C.OUTDIR)):
@@ -51,9 +56,12 @@ def main():
                 if abs(cx - cx2) < 18 and abs(cy - cy2) < 12 and base(code) == base(code2):
                     ok.add(base(code))
                     break
-        if ok:
-            out[key] = sorted(ok)
+        # the sheet WAS re-read: an empty list means "read, no agreement",
+        # which app.js must not confuse with "no re-read available"
+        out[key] = sorted(ok)
     json.dump(out, open(os.path.join(ROOT, 'site', 'codecheck.json'), 'w'), separators=(',', ':'))
+    json.dump({'sheets': len(todo), 'errors': errors},
+              open(os.path.join(ROOT, 'site', 'codecheck_meta.json'), 'w'), separators=(',', ':'))
     tot = sum(len(json.load(open(os.path.join(old_dir, f)))['codes'])
               for f in os.listdir(old_dir) if f.endswith('.json'))
     conf = sum(len(v) for v in out.values())
