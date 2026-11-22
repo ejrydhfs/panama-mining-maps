@@ -4,21 +4,21 @@ Mapa web (Leaflet) que reconstruye los recintos mineros publicados por el
 **MICI / Dirección de Recursos Minerales** de Panamá. **Todo el contenido es
 vectorial: el sitio no incluye ninguna imagen.**
 
-- **2008-07 → 2021-07** — 167 867 cajas extraídas de los **DWG** oficiales
+- **2008-07 → 2021-07** — 166 839 cajas extraídas de los **DWG** oficiales
   (geometría vectorial real, UTM 17N → WGS84).
-- **2022-01 → 2026-10** — 90 235 cajas obtenidas por **reconocimiento de imagen**
+- **2021-12 → 2026-10** — 51 533 cajas obtenidas por **reconocimiento de imagen**
   (segmentación de color + detección de rectángulos) sobre las hojas PDF.
 - **Áreas protegidas y reservas mineras** — 370 polígonos extraídos de las
   capas `Areas Protegida` / `RESERVA MINERA` de los DWG, dibujados como capa de
   contexto (activada por defecto).
 
-Total: **141 meses, 259 059 recintos**, 8,3 MB de JSON + 0,2 MB de zonas.
+Total: **141 meses, 218 372 recintos**, 24 MB de JSON + 0,2 MB de zonas.
 
 ## Estructura
 
 | archivo | contenido |
 |---|---|
-| `boxes.json` | `{ "YYYY-MM": { "metal/contratos": [[W,S,E,N], …] } }` — 254 363 recintos |
+| `boxes.json` | `{ "YYYY-MM": { "metal/contratos": [[W,S,E,N], …] } }` — 218 372 recintos |
 | `zones.json` | polígonos `[[lon,lat],…]` de áreas protegidas / reservas |
 | `boxcodes.json` | recinto → código de licencia (163 149 enlaces: 152 538 de la era DWG, 10 611 de la era raster) |
 | `license.json` | ficha por código: empresa, tipo, hectáreas, estado, `active` (216 mes\|categoría, 33 000 fichas + 334 alias canónicos marcados `_alias`) |
@@ -29,7 +29,7 @@ Categorías: `metal|nometal` × `contratos|solicitudes|ambos`, todas activas por
 defecto. Cada recinto enlazado con su ficha muestra código, empresa, superficie y
 estado; la casilla **«solo vigentes»** deja únicamente las licencias activas.
 
-Los meses sin tabla publicada (2022-01…05, 2022-12, 2023-11) no se filtran: el
+Los meses sin tabla publicada (2022-02…05, 2022-12, 2023-11, 2024-10) no se filtran: el
 contador indica «N sin ficha» y sus recintos siguen visibles.
 
 Las fichas salen de las tablas `LISTADO-*` del MICI (264 mes|categoría, 36 214
