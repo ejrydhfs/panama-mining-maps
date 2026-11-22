@@ -193,8 +193,11 @@ function render(i) {
                   `<span style="color:#d7e0ec">${bitsF.join(' · ')}</span></details>`;
         }
 
-        if (state.georef[date + '|' + kind]) {
-          bits.unshift(`<span style="color:#ffc266">⚠ hoja georreferenciada por plantilla: posición no verificada</span>`);
+        const gmode = state.georef[date + '|' + kind];
+        if (gmode) {
+          bits.unshift(gmode === 'unverified'
+            ? `<span style="color:#ffc266">⚠ geometría no verificada en esta hoja</span>`
+            : `<span style="color:#ffc266">⚠ hoja georreferenciada por plantilla: posición no verificada</span>`);
         }
         if (ficha) bits.push(ficha);
         let st = rec ? rec.status : 'sin ficha · atribución no verificada';
